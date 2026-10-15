@@ -1,7 +1,7 @@
 # 单实例部署：同一个 Telegram 登录状态绝不能被两个进程同时使用，不要加 replicas 或横向扩容。
 services:
   app:
-    # 使用预构建镜像时把 TGRANK_IMAGE 设为 ghcr.io/<你的 GitHub 用户名>/tg-reaction-rank:latest；
+    # 使用预构建镜像时把 TGRANK_IMAGE 设为 ghcr.io/dhslegen/tg-reaction-rank:latest；
     # 从源码运行则用 docker compose up -d --build
     image: ${TGRANK_IMAGE:-tg-reaction-rank:local}
     build: .

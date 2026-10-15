@@ -19,7 +19,7 @@
 需要 Docker 和 Docker Compose，512MB 内存即可运行。
 
 ```bash
-git clone <本仓库地址> tg-reaction-rank && cd tg-reaction-rank
+git clone https://github.com/dhslegen/tg-reaction-rank.git && cd tg-reaction-rank
 cp .env.example .env
 # 编辑 .env：至少填 ADMIN_PASSWORD 和 APP_SECRET（openssl rand -hex 32）
 docker compose up -d --build
@@ -30,7 +30,7 @@ docker compose up -d --build
 - **只想看一次导出**：在「群」页上传 Telegram Desktop 导出的 `result.json`（导出时选「机器可读的 JSON」，不勾选媒体）。
 - **自动同步**：在 [my.telegram.org](https://my.telegram.org) → API development tools 申请 `api_id` 和 `api_hash`，填进 `.env` 的 `TG_API_ID` / `TG_API_HASH`，然后执行 `docker compose up -d`。之后在网页「Telegram」页用手机号、验证码（以及两步验证密码）登录，再到「群」页添加要同步的群。
 
-使用预构建镜像时，在 `.env` 里设置 `TGRANK_IMAGE=ghcr.io/<owner>/tg-reaction-rank:latest`，然后执行 `docker compose pull && docker compose up -d`。
+使用预构建镜像时，在 `.env` 里设置 `TGRANK_IMAGE=ghcr.io/dhslegen/tg-reaction-rank:latest`，然后执行 `docker compose pull && docker compose up -d`。
 
 ### 配置
 
@@ -136,7 +136,7 @@ Rank the messages in your Telegram groups by how many emoji reactions they recei
 Requires Docker with Docker Compose; 512 MB of RAM is enough.
 
 ```bash
-git clone <this repo> tg-reaction-rank && cd tg-reaction-rank
+git clone https://github.com/dhslegen/tg-reaction-rank.git && cd tg-reaction-rank
 cp .env.example .env
 # edit .env: at least ADMIN_PASSWORD and APP_SECRET (openssl rand -hex 32)
 docker compose up -d --build
@@ -147,7 +147,7 @@ Open `http://127.0.0.1:8000` and sign in with `ADMIN_PASSWORD`.
 - **One-off export**: on the 群 (Groups) page, upload the `result.json` from a Telegram Desktop export (choose "Machine-readable JSON" and leave media unchecked).
 - **Automatic sync**: get an `api_id` and `api_hash` from [my.telegram.org](https://my.telegram.org) → API development tools, put them in `.env` as `TG_API_ID` / `TG_API_HASH`, and run `docker compose up -d`. Then sign in on the Telegram page with your phone number, login code and, if enabled, your 2FA password. Finally, add the groups you want to sync on the Groups page.
 
-To use a prebuilt image, set `TGRANK_IMAGE=ghcr.io/<owner>/tg-reaction-rank:latest` in `.env`, then run `docker compose pull && docker compose up -d`.
+To use a prebuilt image, set `TGRANK_IMAGE=ghcr.io/dhslegen/tg-reaction-rank:latest` in `.env`, then run `docker compose pull && docker compose up -d`.
 
 ### Configuration
 
