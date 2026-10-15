@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import sqlite3
+import re
 from dataclasses import dataclass
 from datetime import date, datetime, time, timedelta
 from zoneinfo import ZoneInfo
@@ -43,7 +44,7 @@ def resolve_range(key: str, date_from: date | None, date_to: date | None, tz: Zo
     today = now.astimezone(tz).date()
     if key == "all":
         return 0, FAR_FUTURE
-    if key in ("7d", "30d"):
+    if re.fullmatch(r"\d{1,3}d", key) and int(key[:-1]) > 0:   # 「近 N 天」：含今天在内的 N 个自然日
         days = int(key[:-1])
         return _day_start(today - timedelta(days=days - 1), tz), FAR_FUTURE
     if key == "year":
