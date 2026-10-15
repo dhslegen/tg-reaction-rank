@@ -17,6 +17,7 @@ class AppContext:
     limiter: LoginLimiter = field(default_factory=LoginLimiter)
     jobs: JobRegistry = field(default_factory=JobRegistry)
     tg: Any = None          # tg.manager.TgManager
+    syncer: Any = None      # tg.sync.Syncer
     scheduler: Any = None   # scheduler.Scheduler
     _tasks: set[asyncio.Task] = field(default_factory=set)
 
