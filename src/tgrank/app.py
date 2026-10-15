@@ -17,6 +17,8 @@ from .boards import ensure_builtin
 from .config import Env
 from .context import AppContext
 from .db import connect, migrate
+from .scheduler import Scheduler
+from .settings import load_settings
 from .tg.manager import TgManager, TgState
 from .tg.sync import Syncer
 
@@ -54,7 +56,11 @@ def create_app(env: Env, *, client_factory: Callable | None = None,
         ctx.tg = TgManager(env, client_factory=client_factory, sleep=sleep)
         ctx.syncer = Syncer(ctx.tg, env.db_path)
         ctx.background(_start_telegram(ctx))
+        ctx.scheduler = Scheduler(ctx)
+        with connect(env.db_path) as conn:
+            ctx.scheduler.start(load_settings(conn))
         yield
+        ctx.scheduler.shutdown()
         for task in list(ctx._tasks):
             task.cancel()
         await ctx.tg.stop()

@@ -138,3 +138,29 @@ def test_untrusted_proxy_header_ignored(env):
         _lock_out(c, "203.0.113.9")
         r = c.post("/api/auth/login", json={"password": PASSWORD}, headers={"x-forwarded-for": "198.51.100.7"})
         assert r.status_code == 429  # 未信任代理时伪造的头不能用来换桶
+
+
+def test_schedule_view_follows_settings(admin):
+    jobs = {j["id"]: j for j in admin.get("/api/schedule").json()["jobs"]}
+    assert jobs["push"]["next_run"] is not None
+    s = admin.get("/api/settings").json()
+    s["push"]["enabled"] = False
+    admin.put("/api/settings", json=s)
+    jobs = {j["id"]: j for j in admin.get("/api/schedule").json()["jobs"]}
+    assert jobs["push"]["next_run"] is None
+
+
+def test_push_test_reports_failure_when_telegram_missing(seeded, env):
+    import time
+
+    from tgrank import store
+    from tgrank.db import connect
+    from tgrank.records import MessageRecord, ReactionRecord
+    with connect(env.db_path) as c:  # 放一条当下的消息，保证有内容可推
+        store.import_messages(c, BASIC, [MessageRecord(99, int(time.time()), "u", "新", None, None, None,
+                                                       (ReactionRecord("emoji", "👍", 1),))])
+    r = seeded.post("/api/push/test", json={})
+    assert r.status_code == 200
+    body = r.json()
+    assert body["sent"] == 0 and body["last_push"]["ok"] is False
+    assert seeded.get("/api/schedule").json()["last_push"]["ok"] is False
