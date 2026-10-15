@@ -8,14 +8,14 @@ import html
 import json
 import logging
 import time
-from datetime import datetime
+from datetime import date, datetime, time as dtime, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
 from . import boards
 from .db import connect
 from .ranking import RankQuery, rank
-from .settings import Settings, load_settings
+from .settings import PushSettings, Settings, load_settings
 from .tg.manager import TgManager, TgUnavailable
 from .tg.mapping import input_peer
 
@@ -44,9 +44,40 @@ def _entry(n: int, item: dict, link_base: str | None) -> str:
     return line
 
 
+def _midnight(d: date, tz: ZoneInfo) -> datetime:
+    return datetime.combine(d, dtime.min, tzinfo=tz)
+
+
+def _shift_month(d: date, months: int) -> date:
+    y, m = divmod(d.year * 12 + d.month - 1 + months, 12)
+    return d.replace(year=y, month=m + 1)  # monthday 限定 1–28，任何月份都存在
+
+
+def push_window(p: PushSettings, tz: ZoneInfo, now: datetime) -> tuple[datetime, datetime]:
+    """本期统计区间 [start, end)，均为 TZ 下的 00:00。
+
+    默认以「上一个触发日 → 本次触发日」为界，相邻两期首尾相接、不漏不重；触发日当天的消息归下一期。
+    手动设了 range_days 时取今天之前的 N 个完整自然日。手动测试推送按同一规则，把当前时刻视为触发时刻。
+    """
+    today = now.astimezone(tz).date()
+    if p.range_days:
+        end = today
+        return _midnight(end - timedelta(days=p.range_days), tz), _midnight(end, tz)
+    if p.frequency == "weekly":
+        end = today - timedelta(days=(today.weekday() - p.weekday) % 7)
+        return _midnight(end - timedelta(days=7), tz), _midnight(end, tz)
+    end = today.replace(day=p.monthday) if today.day >= p.monthday else _shift_month(today.replace(day=p.monthday), -1)
+    return _midnight(_shift_month(end, -1), tz), _midnight(end, tz)
+
+
+def _md(d: date) -> str:
+    return f"{d.month}月{d.day}日"
+
+
 def build_digest(conn, settings: Settings, tz: ZoneInfo, now: datetime) -> list[str]:
     """返回已分段的 HTML 消息；分段只发生在条目之间，续段会重复小标题。"""
-    days = settings.push.effective_range_days
+    start, end = push_window(settings.push, tz, now)
+    window = (int(start.timestamp()), int(end.timestamp()))
     push_boards = [b for b in boards.list_boards(conn) if b["push_enabled"]]
     chats = conn.execute(
         "SELECT chat_id, title FROM chats c WHERE EXISTS (SELECT 1 FROM reactions r WHERE r.chat_id = c.chat_id) ORDER BY title"
@@ -55,7 +86,7 @@ def build_digest(conn, settings: Settings, tz: ZoneInfo, now: datetime) -> list[
     sections: list[tuple[str, list[str]]] = []
     for chat in chats:
         for b in push_boards:
-            page = rank(conn, RankQuery(chat["chat_id"], b["id"], range=f"{days}d", limit=TOP_N), tz, now)
+            page = rank(conn, RankQuery(chat["chat_id"], b["id"], window=window, limit=TOP_N), tz, now)
             if page.items:
                 title = f"<b>{html.escape(chat['title'])} · {html.escape(b['name'])}</b>"
                 sections.append((title, [_entry(i + 1, it, page.link_base) for i, it in enumerate(page.items)]))
@@ -63,7 +94,7 @@ def build_digest(conn, settings: Settings, tz: ZoneInfo, now: datetime) -> list[
         return []
 
     parts: list[str] = []
-    current = f"🏆 <b>近 {days} 天群精华</b>（截至 {now.astimezone(tz):%Y-%m-%d %H:%M}）"
+    current = f"🏆 <b>{_md(start.date())}–{_md((end - timedelta(days=1)).date())} 精华</b>"
     for title, entries in sections:
         current += f"\n\n{title}"
         for entry in entries:

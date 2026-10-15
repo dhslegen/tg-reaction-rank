@@ -156,8 +156,11 @@ def test_push_test_reports_failure_when_telegram_missing(seeded, env):
     from tgrank import store
     from tgrank.db import connect
     from tgrank.records import MessageRecord, ReactionRecord
-    with connect(env.db_path) as c:  # 放一条当下的消息，保证有内容可推
-        store.import_messages(c, BASIC, [MessageRecord(99, int(time.time()), "u", "新", None, None, None,
+    s = seeded.get("/api/settings").json()
+    s["push"]["range_days"] = 3   # 今天之前的 3 个完整自然日
+    seeded.put("/api/settings", json=s)
+    with connect(env.db_path) as c:  # 放一条 2 天前的消息，保证有内容可推
+        store.import_messages(c, BASIC, [MessageRecord(99, int(time.time()) - 2 * 86400, "u", "新", None, None, None,
                                                        (ReactionRecord("emoji", "👍", 1),))])
     r = seeded.post("/api/push/test", json={})
     assert r.status_code == 200

@@ -26,6 +26,7 @@ class RankQuery:
     q: str = ""
     offset: int = 0
     limit: int = 50
+    window: tuple[int, int] | None = None   # 显式 [lo, hi) UTC 秒，优先于 range（推送用）
 
 
 @dataclass(frozen=True)
@@ -78,7 +79,7 @@ def rank(conn: sqlite3.Connection, q: RankQuery, tz: ZoneInfo, now: datetime) ->
         raise BoardNotFound(q.board_id)
     chat = conn.execute("SELECT kind FROM chats WHERE chat_id = ?", (q.chat_id,)).fetchone()
 
-    lo, hi = resolve_range(q.range, q.date_from, q.date_to, tz, now)
+    lo, hi = q.window or resolve_range(q.range, q.date_from, q.date_to, tz, now)
     where = ["r.chat_id = :chat", "m.date >= :lo", "m.date < :hi"]
     params: dict = {"chat": q.chat_id, "board": q.board_id, "lo": lo, "hi": hi}
     if q.topic_id is not None:

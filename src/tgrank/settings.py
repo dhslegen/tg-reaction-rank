@@ -37,7 +37,7 @@ class PushSettings(_Model):
     weekday: int = Field(0, ge=0, le=6)              # weekly 时生效
     monthday: int = Field(1, ge=1, le=28)            # monthly 时生效；不提供 29–31 避免短月跳过
     time: str = "09:00"
-    range_days: int | None = Field(None, ge=1, le=366)  # 为空则跟随频率：weekly 7 天，monthly 30 天
+    range_days: int | None = Field(None, ge=1, le=366)  # 为空则统计「上次触发日到本次触发日」，见 push.push_window
     target: str = "me"                               # 'me' = 收藏夹；否则为私人频道的 marked id
 
     _hhmm = field_validator("time")(_check_hhmm)
@@ -49,10 +49,6 @@ class PushSettings(_Model):
         if v != "me" and not re.fullmatch(r"-?\d+", v):
             raise ValueError("推送目标只能是 me（收藏夹）或频道 id")
         return v
-
-    @property
-    def effective_range_days(self) -> int:
-        return self.range_days or (7 if self.frequency == "weekly" else 30)
 
 
 class Settings(_Model):

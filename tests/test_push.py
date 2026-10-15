@@ -7,7 +7,9 @@ from fakes import channel
 from tgrank import boards, store
 from tgrank.boards import BoardIn
 from tgrank.db import connect
-from tgrank.push import LIMIT, build_digest, last_push, send_digest, utf16_len
+from datetime import timedelta
+
+from tgrank.push import LIMIT, build_digest, last_push, push_window, send_digest, utf16_len
 from tgrank.records import ChatInfo, MessageRecord, ReactionRecord as R
 from tgrank.settings import PushSettings, Settings, save_settings
 
@@ -43,8 +45,61 @@ def test_digest_lists_top10_with_scores_and_links(db):
 def test_digest_uses_push_window(db):
     seed(db, n=2, ago_days=10)
     assert build_digest(db, Settings(), TZ, NOW) == []
-    monthly = Settings(push=PushSettings(frequency="monthly"))
+    monthly = Settings(push=PushSettings(frequency="monthly", monthday=19))
     assert len(build_digest(db, monthly, TZ, NOW)) == 1
+
+
+def test_digest_excludes_trigger_day_itself(db):
+    seed(db, n=1, ago_days=0)  # 周一 09:00 推送当天的消息归下一期
+    assert build_digest(db, Settings(), TZ, NOW) == []
+
+
+def d(y, m, day, h=0):
+    return datetime(y, m, day, h, tzinfo=TZ)
+
+
+def test_weekly_window_is_previous_seven_full_days():
+    start, end = push_window(PushSettings(), TZ, NOW)
+    assert (start, end) == (d(2026, 10, 12), d(2026, 10, 19))
+
+
+def test_weekly_windows_are_contiguous():
+    p = PushSettings(weekday=0)
+    prev = push_window(p, TZ, d(2026, 10, 12, 9))
+    cur = push_window(p, TZ, d(2026, 10, 19, 9))
+    assert prev[1] == cur[0]
+
+
+def test_monthly_windows_are_contiguous_across_short_months():
+    p = PushSettings(frequency="monthly", monthday=28)
+    jan = push_window(p, TZ, d(2027, 1, 28, 9))
+    feb = push_window(p, TZ, d(2027, 2, 28, 9))
+    mar = push_window(p, TZ, d(2027, 3, 28, 9))
+    assert jan == (d(2026, 12, 28), d(2027, 1, 28))
+    assert jan[1] == feb[0] and feb[1] == mar[0]
+
+
+def test_monthly_window_before_monthday_uses_previous_month():
+    p = PushSettings(frequency="monthly", monthday=15)
+    assert push_window(p, TZ, d(2026, 10, 3, 9)) == (d(2026, 8, 15), d(2026, 9, 15))
+
+
+def test_manual_range_days_are_full_days_before_today():
+    p = PushSettings(range_days=3)
+    assert push_window(p, TZ, d(2026, 10, 19, 9)) == (d(2026, 10, 16), d(2026, 10, 19))
+
+
+def test_window_across_dst_is_whole_days():
+    ny = ZoneInfo("America/New_York")
+    start, end = push_window(PushSettings(weekday=0), ny, datetime(2026, 11, 2, 9, tzinfo=ny))  # 11-01 夏令时结束
+    assert end.timestamp() - start.timestamp() == timedelta(days=7, hours=1).total_seconds()  # 墙上时间整 7 天，实际多 1 小时
+    assert (start.hour, end.hour) == (0, 0)
+
+
+def test_digest_title_states_range(db):
+    seed(db, n=1)
+    [msg] = build_digest(db, Settings(), TZ, NOW)
+    assert "10月12日–10月18日" in msg
 
 
 def test_only_push_enabled_boards(db):

@@ -18,12 +18,6 @@ def test_roundtrip(conn):
     assert load_settings(conn) == s
 
 
-def test_effective_range_follows_frequency():
-    assert PushSettings().effective_range_days == 7
-    assert PushSettings(frequency="monthly").effective_range_days == 30
-    assert PushSettings(frequency="monthly", range_days=14).effective_range_days == 14
-
-
 @pytest.mark.parametrize("bad", [
     {"sync": {"new_interval_min": 1}},
     {"sync": {"refresh_days": 0}},
