@@ -152,3 +152,7 @@ async def test_login_refreshes_access_hash_and_pauses_unreachable(mgr, world, tg
         rows = {r["chat_id"]: r for r in c.execute("SELECT * FROM chats")}
     assert rows[-1000000000100]["access_hash"] == 999 and rows[-1000000000100]["sync_enabled"] == 1
     assert rows[-1000000000300]["sync_enabled"] == 0 and "无法访问" in rows[-1000000000300]["last_error"]
+
+
+def test_state_is_connecting_before_start(tg_env, world):
+    assert TgManager(tg_env, client_factory=world.factory).state is TgState.CONNECTING

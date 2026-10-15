@@ -34,6 +34,7 @@ RELOGIN_HINT = "Telegram 登录已失效（可能在其它设备上被登出，�
 
 class TgState(str, enum.Enum):
     UNCONFIGURED = "unconfigured"           # .env 没填 TG_API_ID / TG_API_HASH
+    CONNECTING = "connecting"               # 启动后尚未完成首次连接
     LOGGED_OUT = "logged_out"
     AUTHORIZED = "authorized"
     RELOGIN_REQUIRED = "relogin_required"
@@ -112,7 +113,7 @@ class TgManager:
         self._client = None
         self._session: str | None = None
         self._pending: _Pending | None = None
-        self.state = TgState.UNCONFIGURED if not env.telegram_configured else TgState.LOGGED_OUT
+        self.state = TgState.UNCONFIGURED if not env.telegram_configured else TgState.CONNECTING
         self.me: dict | None = None
         self.last_error: str | None = None
         self.flood_until: float | None = None
