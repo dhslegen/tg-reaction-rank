@@ -39,6 +39,7 @@ def test_media_label(msg, label):
     (4242, "private_group", -4242),
     (-4242, "private_group", -4242),
     (777, "personal_chat", 777),
+    (100, "private_supergroup", -1000000000100),  # 与 Telethon utils.get_peer_id 一致，而非字符串拼接
 ])
 def test_marked_chat_id(raw, kind, expected):
     assert marked_chat_id(raw, kind) == expected
@@ -47,6 +48,7 @@ def test_marked_chat_id(raw, kind, expected):
 def test_link_base_only_for_supergroups_and_channels():
     assert link_base(-1001234567890, "private_supergroup") == "https://t.me/c/1234567890/"
     assert link_base(-4242, "private_group") is None
+    assert link_base(-1000000000100, "private_channel") == "https://t.me/c/100/"
 
 
 @pytest.mark.parametrize("raw,record", [

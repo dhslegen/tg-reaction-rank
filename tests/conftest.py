@@ -61,3 +61,52 @@ def seeded(admin, env):
                 if exp.is_forum:
                     store.mark_forum(c, exp.info.chat_id, first_topic_id=exp.first_topic_id)
     return admin
+
+
+from fakes import FakeWorld
+
+
+@pytest.fixture
+def world():
+    return FakeWorld()
+
+
+@pytest.fixture
+def tg_env(tmp_path):
+    from tgrank.app import init_db
+    e = Env.from_environ({
+        "ADMIN_PASSWORD": PASSWORD, "APP_SECRET": "k" * 40, "TZ": "Asia/Shanghai",
+        "DATA_DIR": str(tmp_path / "tgdata"), "TG_API_ID": "1", "TG_API_HASH": "h",
+    })
+    init_db(e)
+    return e
+
+
+class NoSleep:
+    """记录等待时长而不真的睡。"""
+    def __init__(self):
+        self.calls = []
+
+    async def __call__(self, seconds):
+        self.calls.append(seconds)
+
+
+@pytest.fixture
+def nosleep():
+    return NoSleep()
+
+
+@pytest.fixture
+async def mgr(tg_env, world, nosleep):
+    from tgrank.tg.manager import TgManager
+    m = TgManager(tg_env, client_factory=world.factory, sleep=nosleep)
+    await m.start()
+    yield m
+    await m.stop()
+
+
+@pytest.fixture
+async def authed(mgr, world):
+    await mgr.login_phone(world.phone)
+    assert await mgr.login_code(world.code) == "done"
+    return mgr

@@ -81,6 +81,9 @@ def media_label(m: dict) -> str | None:
     return None
 
 
+CHANNEL_OFFSET = 10 ** 12   # Telethon 的 marked id：频道/超级群为 -(10^12 + id)
+
+
 def _is_channel_like(kind: str) -> bool:
     return "supergroup" in kind or "channel" in kind
 
@@ -89,7 +92,7 @@ def marked_chat_id(raw_id: int | str, kind: str) -> int:
     """Desktop 导出里超级群 id 通常不带 -100 前缀（个别版本带），统一成 Telethon 的 marked id。"""
     n = int(raw_id)
     if _is_channel_like(kind):
-        return n if n < 0 else int(f"-100{n}")
+        return n if n < 0 else -(CHANNEL_OFFSET + n)
     if kind == "private_group":
         return -abs(n)
     return n
@@ -99,7 +102,7 @@ def link_base(chat_id: int, kind: str) -> str | None:
     """t.me/c/<去掉 -100 的 id>/<msg_id> 对成员可用；普通群和私聊拼不出跳转链接。"""
     if not _is_channel_like(kind):
         return None
-    return f"https://t.me/c/{str(chat_id).removeprefix('-100')}/"
+    return f"https://t.me/c/{-chat_id - CHANNEL_OFFSET}/"
 
 
 def desktop_reaction(r: dict) -> ReactionRecord | None:

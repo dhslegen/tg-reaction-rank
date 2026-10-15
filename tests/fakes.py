@@ -86,7 +86,7 @@ class Dialog:
 @dataclass
 class FakeWorld:
     """服务端状态：消息、账号、有效 session；errors 按方法名排队注入异常。"""
-    me: types.User = field(default_factory=lambda: user(42, "站长"))
+    me: types.User = field(default_factory=lambda: types.User(id=42, first_name="站长", phone="8613800000000"))
     phone: str = "+8613800000000"
     code: str = "12345"
     password: str | None = None
