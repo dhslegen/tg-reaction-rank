@@ -1,0 +1,20 @@
+{
+ "name": "读书会",
+ "type": "public_supergroup",
+ "id": 2222222222,
+ "messages": [
+  {"id": 1, "type": "message", "date": "2026-09-01T08:00:00", "date_unixtime": "1788220800", "from": "主持人", "text": "欢迎来到 General",
+   "reactions": [{"type": "emoji", "count": 1, "emoji": "👋"}]},
+  {"id": 10, "type": "service", "date": "2026-09-01T09:00:00", "date_unixtime": "1788224400", "actor": "主持人", "action": "topic_created", "title": "科幻"},
+  {"id": 11, "type": "message", "date": "2026-09-01T09:01:00", "date_unixtime": "1788224460", "from": "甲", "text": "三体第一部", "reply_to_message_id": 10,
+   "reactions": [{"type": "emoji", "count": 4, "emoji": "👍"}]},
+  {"id": 12, "type": "message", "date": "2026-09-01T09:02:00", "date_unixtime": "1788224520", "from": "乙", "text": "黑暗森林更好", "reply_to_message_id": 11,
+   "reactions": [{"type": "emoji", "count": 6, "emoji": "😂"}]},
+  {"id": 20, "type": "service", "date": "2026-09-02T09:00:00", "date_unixtime": "1788310800", "actor": "主持人", "action": "topic_created", "title": "历史"},
+  {"id": 21, "type": "message", "date": "2026-09-02T09:01:00", "date_unixtime": "1788310860", "from": "丙", "text": "万历十五年", "reply_to_message_id": 20,
+   "reactions": [{"type": "emoji", "count": 2, "emoji": "❤"}]},
+  {"id": 22, "type": "service", "date": "2026-09-03T09:00:00", "date_unixtime": "1788397200", "actor": "主持人", "action": "topic_edit", "new_title": "中国历史", "reply_to_message_id": 20},
+  {"id": 23, "type": "message", "date": "2026-09-03T09:01:00", "date_unixtime": "1788397260", "from": "丁", "text": "回复一条已删除的消息", "reply_to_message_id": 999,
+   "reactions": [{"type": "emoji", "count": 1, "emoji": "🤔"}]}
+ ]
+}

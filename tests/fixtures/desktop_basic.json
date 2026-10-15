@@ -1,0 +1,18 @@
+{
+ "name": "周末吃饭群",
+ "type": "private_supergroup",
+ "id": 1234567890,
+ "messages": [
+  {"id": 1, "type": "service", "date": "2026-09-01T10:00:00", "date_unixtime": "1788228000", "action": "create_group", "title": "周末吃饭群"},
+  {"id": 2, "type": "message", "date": "2026-09-01T10:01:00", "date_unixtime": "1788228060", "from": "阿明", "from_id": "user1", "text": "周六去吃火锅吗",
+   "reactions": [{"type": "emoji", "count": 3, "emoji": "👍"}, {"type": "emoji", "count": 1, "emoji": "❤️"}]},
+  {"id": 3, "type": "message", "date": "2026-09-01T10:02:00", "date_unixtime": "1788228120", "from": "小红", "from_id": "user2",
+   "text": ["上次那家", {"type": "bold", "text": "辣到哭"}, "了 😂"], "reply_to_message_id": 2,
+   "reactions": [{"type": "emoji", "count": 5, "emoji": "😂"}, {"type": "custom_emoji", "count": 2, "emoji": "(custom emoji)", "document_id": "5368324170671202286"}, {"type": "paid", "count": 1}]},
+  {"id": 4, "type": "message", "date": "2026-09-02T09:00:00", "date_unixtime": "1788310800", "from": "阿明", "from_id": "user1", "text": "", "photo": "(File not included.)",
+   "reactions": [{"type": "emoji", "count": 2, "emoji": "👎"}]},
+  {"id": 5, "type": "message", "date": "2026-09-02T09:05:00", "date_unixtime": "1788311100", "from": null, "text": "没人理我"},
+  {"id": 6, "type": "message", "date": "2026-09-03T09:05:00", "date_unixtime": "1788397500", "from": "老王", "from_id": "user3", "text": "100% 赞同_真的",
+   "media_type": "sticker", "sticker_emoji": "🔥", "reactions": [{"type": "emoji", "count": 1, "emoji": "🔥"}]}
+ ]
+}
