@@ -7,6 +7,7 @@ from importlib import resources
 from fastapi import FastAPI
 from fastapi.responses import PlainTextResponse
 from fastapi.staticfiles import StaticFiles
+from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 from .api import auth, boards, chats, imports, settings
 from .boards import ensure_builtin
@@ -43,6 +44,10 @@ def create_app(env: Env) -> FastAPI:
 
     for module in (auth, chats, boards, settings, imports):
         app.include_router(module.router)
+
+    if env.forwarded_allow_ips:
+        # 在应用层而非 uvicorn 参数里处理代理头：行为可测试，且 serve 时关闭 uvicorn 自带的那一层避免重复
+        app.add_middleware(ProxyHeadersMiddleware, trusted_hosts=env.forwarded_allow_ips)
 
     static_dir = resources.files("tgrank").joinpath("static")
     app.mount("/", StaticFiles(directory=str(static_dir), html=True), name="static")

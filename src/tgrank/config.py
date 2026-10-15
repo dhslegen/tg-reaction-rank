@@ -24,6 +24,7 @@ class Env:
     port: int
     data_dir: Path
     proxy: dict | None
+    forwarded_allow_ips: str = ""   # 信任哪些反向代理的 X-Forwarded-*；空 = 不信任
 
     @property
     def telegram_configured(self) -> bool:
@@ -69,6 +70,7 @@ class Env:
             port=port,
             data_dir=Path(get("DATA_DIR") or "data"),
             proxy=parse_proxy(get("TG_PROXY")) if get("TG_PROXY") else None,
+            forwarded_allow_ips=get("FORWARDED_ALLOW_IPS"),
         )
 
 

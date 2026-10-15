@@ -41,6 +41,7 @@ class ChatInfo:
     kind: str                       # 与 Desktop 导出的 type 字段一致
     username: str | None = None
     is_forum: bool = False
+    access_hash: int | None = None  # 只有 API 来源才有
 
 
 def normalize_emoji(s: str) -> str:

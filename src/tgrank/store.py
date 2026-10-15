@@ -23,14 +23,15 @@ class ImportStats:
 
 def upsert_chat(conn: sqlite3.Connection, info: ChatInfo, *, sync_enabled: bool) -> None:
     conn.execute(
-        """INSERT INTO chats(chat_id, title, kind, username, is_forum, sync_enabled, created_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?)
+        """INSERT INTO chats(chat_id, title, kind, username, access_hash, is_forum, sync_enabled, created_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?)
            ON CONFLICT(chat_id) DO UPDATE SET
              title = excluded.title, kind = excluded.kind,
              username = COALESCE(excluded.username, chats.username),
+             access_hash = COALESCE(excluded.access_hash, chats.access_hash),
              is_forum = MAX(chats.is_forum, excluded.is_forum),
              sync_enabled = MAX(chats.sync_enabled, excluded.sync_enabled)""",
-        (info.chat_id, info.title, info.kind, info.username, int(info.is_forum), int(sync_enabled), int(time.time())),
+        (info.chat_id, info.title, info.kind, info.username, info.access_hash, int(info.is_forum), int(sync_enabled), int(time.time())),
     )
 
 

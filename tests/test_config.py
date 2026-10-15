@@ -67,3 +67,8 @@ def test_parse_proxy_rejects_bad(raw):
 
 def test_empty_proxy_is_none():
     assert Env.from_environ({**GOOD, "TG_PROXY": ""}).proxy is None
+
+
+def test_forwarded_allow_ips_defaults_to_untrusted():
+    assert Env.from_environ(GOOD).forwarded_allow_ips == ""
+    assert Env.from_environ({**GOOD, "FORWARDED_ALLOW_IPS": " 172.16.0.0/12 "}).forwarded_allow_ips == "172.16.0.0/12"

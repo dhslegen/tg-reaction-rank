@@ -89,3 +89,9 @@ def test_delete_and_queries(conn):
     assert store.max_msg_id(conn, CHAT.chat_id) == 2
     assert reactions_of(conn, 1) == []
     assert store.max_msg_id(conn, -42) is None
+
+
+def test_access_hash_kept_when_import_has_none(conn):
+    store.upsert_chat(conn, ChatInfo(-1001, "群", "private_supergroup", access_hash=42), sync_enabled=True)
+    store.upsert_chat(conn, ChatInfo(-1001, "群", "private_supergroup"), sync_enabled=False)
+    assert conn.execute("SELECT access_hash FROM chats").fetchone()[0] == 42

@@ -111,3 +111,30 @@ def test_chat_patch_and_delete(seeded):
 def test_static_index_served(client):
     r = client.get("/")
     assert r.status_code == 200 and "<html" in r.text.lower()
+
+
+def _app_client(env, **overrides):
+    from dataclasses import replace
+
+    from fastapi.testclient import TestClient
+    from tgrank.app import create_app
+    return TestClient(create_app(replace(env, **overrides)), base_url="https://testserver")
+
+
+def _lock_out(c, xff):
+    for _ in range(5):
+        c.post("/api/auth/login", json={"password": "nope"}, headers={"x-forwarded-for": xff})
+
+
+def test_trusted_proxy_buckets_by_forwarded_for(env):
+    with _app_client(env, forwarded_allow_ips="testclient") as c:
+        _lock_out(c, "203.0.113.9")
+        r = c.post("/api/auth/login", json={"password": PASSWORD}, headers={"x-forwarded-for": "198.51.100.7"})
+        assert r.status_code == 200  # 攻击者被锁不影响站长
+
+
+def test_untrusted_proxy_header_ignored(env):
+    with _app_client(env) as c:
+        _lock_out(c, "203.0.113.9")
+        r = c.post("/api/auth/login", json={"password": PASSWORD}, headers={"x-forwarded-for": "198.51.100.7"})
+        assert r.status_code == 429  # 未信任代理时伪造的头不能用来换桶

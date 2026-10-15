@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS chats (
   title             TEXT NOT NULL,
   kind              TEXT NOT NULL,
   username          TEXT,
+  access_hash       INTEGER,        -- 构造 InputPeerChannel 用；StringSession 不缓存实体
   is_forum          INTEGER NOT NULL DEFAULT 0,
   sync_enabled      INTEGER NOT NULL DEFAULT 0,
   history_complete  INTEGER NOT NULL DEFAULT 0,
