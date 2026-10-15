@@ -9,7 +9,7 @@ def test_builtin_board_created_once(conn):
     boards.ensure_builtin(conn)
     boards.ensure_builtin(conn)
     [b] = boards.list_boards(conn)
-    assert (b["name"], b["builtin"], b["default_weight"], b["weights"]) == ("综合", True, 1, {})
+    assert (b["name"], b["builtin"], b["default_weight"], b["weights"], b["push_enabled"]) == ("综合", True, 1, {}, True)
 
 
 def test_create_normalizes_emoji_keys(conn):

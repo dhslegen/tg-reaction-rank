@@ -16,7 +16,8 @@ SCHEMA_VERSION = 1
 @contextmanager
 def connect(path: Path):
     """打开自动提交模式的连接；需要原子写入时配合 transaction() 使用。"""
-    conn = sqlite3.connect(path, isolation_level=None)  # 自己管理事务
+    # FastAPI 的同步依赖和端点可能跑在线程池的不同线程里；每个连接仍只被一个请求顺序使用
+    conn = sqlite3.connect(path, isolation_level=None, check_same_thread=False)  # 自己管理事务
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA journal_mode = WAL")
     conn.execute("PRAGMA synchronous = NORMAL")

@@ -47,7 +47,7 @@ class BoardIn(BaseModel):
 
 def ensure_builtin(conn: sqlite3.Connection) -> None:
     if conn.execute("SELECT 1 FROM boards WHERE builtin = 1").fetchone() is None:
-        conn.execute("INSERT INTO boards(name, builtin, position) VALUES (?, 1, 0)", (BUILTIN_NAME,))
+        conn.execute("INSERT INTO boards(name, builtin, push_enabled, position) VALUES (?, 1, 1, 0)", (BUILTIN_NAME,))
 
 
 def _row_to_board(conn, row) -> dict:
