@@ -62,7 +62,8 @@ window.addEventListener('hashchange', render);
 
 (async () => {
   if (route() !== 'login') {
-    try { await api('/api/auth/me'); } catch { return; }  // api() 已跳转到登录页
+    const me = await api('/api/auth/me').catch(() => ({ authenticated: false }));
+    if (!me.authenticated) { location.hash = '#/login'; return; }  // hashchange 会渲染登录页
   }
   render();
 })();

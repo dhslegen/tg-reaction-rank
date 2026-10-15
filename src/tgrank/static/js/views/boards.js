@@ -1,10 +1,10 @@
 // 榜单 = 名称 + 表情权重表；未列出的表情、自定义表情、Stars 打赏各有一个默认权重
 import { api } from '../api.js';
-import { $, busy, esc, fmtNum, prefs, setStatus } from '../ui.js';
+import { $, busy, displayEmoji, esc, fmtNum, prefs, setStatus } from '../ui.js';
 
 function describe(b) {
   if (b.builtin) return '每个反应记 1 分';
-  const parts = Object.entries(b.weights).map(([e, w]) => `${e} ×${fmtNum(w)}`);
+  const parts = Object.entries(b.weights).map(([e, w]) => `${displayEmoji(e)} ×${fmtNum(w)}`);
   const rest = [];
   if (b.default_weight !== 1) rest.push(`其余表情 ×${fmtNum(b.default_weight)}`);
   if (b.custom_emoji_weight !== 1) rest.push(`自定义表情 ×${fmtNum(b.custom_emoji_weight)}`);
@@ -21,7 +21,10 @@ export async function render(root) {
 
   let boards = [];
   let emojis = [];
-  const chat = prefs.get('rank', {}).chat;
+  // 表情候选取自「当前群」：排行页记下的群，没有记录就用第一个群
+  const chats = await api('/api/chats');
+  const saved = prefs.get('rank', {}).chat;
+  const chat = chats.some(c => c.chat_id === saved) ? saved : chats[0]?.chat_id;
   if (chat) emojis = await api(`/api/chats/${chat}/emojis`).catch(() => []);
 
   async function load() {
@@ -41,7 +44,7 @@ export async function render(root) {
 
   function weightRow(emoji = '', weight = 1) {
     return `<div class="w">
-      <input aria-label="表情" value="${esc(emoji)}" placeholder="😂" maxlength="16">
+      <input aria-label="表情" value="${esc(emoji && displayEmoji(emoji))}" placeholder="😂" maxlength="16">
       <input aria-label="权重" type="number" step="0.1" min="-10" max="100" value="${weight}">
       <button class="textbtn" type="button" data-act="rm">移除</button>
     </div>`;
@@ -64,7 +67,7 @@ export async function render(root) {
           <button class="ghost" type="button" id="addRow">添加表情</button>
           ${emojis.length ? `<p class="muted" style="font-size:.9rem;margin:1rem 0 0">当前群里出现过的表情，点一下加入：</p>
           <div class="chips" id="chips">${emojis.filter(e => e.kind === 'emoji').slice(0, 30)
-            .map(e => `<button class="chip" type="button" data-e="${esc(e.key)}">${esc(e.label)}<b>${fmtNum(e.count)}</b></button>`).join('')}</div>` : ''}
+            .map(e => `<button class="chip" type="button" data-e="${esc(e.label)}">${esc(e.label)}<b>${fmtNum(e.count)}</b></button>`).join('')}</div>` : ''}
           <div class="defaults" style="margin-top:1.25rem">
             <label class="field"><span>其余普通表情</span><input id="dw" type="number" step="0.1" min="-10" max="100" value="${b.default_weight}"></label>
             <label class="field"><span>自定义表情</span><input id="cw" type="number" step="0.1" min="-10" max="100" value="${b.custom_emoji_weight}"></label>
@@ -86,7 +89,8 @@ export async function render(root) {
     if (chips) chips.onclick = e => {
       const c = e.target.closest('.chip');
       if (!c) return;
-      const exists = [...weights.querySelectorAll('.w input:first-child')].some(i => i.value.trim() === c.dataset.e);
+      const norm = v => v.replace(/\uFE0F/g, '').trim();
+      const exists = [...weights.querySelectorAll('.w input:first-child')].some(i => norm(i.value) === norm(c.dataset.e));
       if (!exists) weights.insertAdjacentHTML('beforeend', weightRow(c.dataset.e, 1));
     };
     $(ed, '#cancel').onclick = () => { ed.hidden = true; };

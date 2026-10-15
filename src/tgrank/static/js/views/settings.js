@@ -70,6 +70,7 @@ export async function render(root) {
     </form>
 
     <h2>运行情况</h2>
+    ${tg.state === 'authorized' ? '' : `<p class="banner-inline"><span>Telegram ${tg.state === 'unconfigured' ? '还没有配置 API 凭据' : '未登录或连接不可用'}，同步和推送已暂停。<a href="#/telegram">去 Telegram 页处理</a></span></p>`}
     <ul class="rows" id="jobs"></ul>
     <p style="margin-top:1.25rem" id="lastPush"></p>
     <button class="ghost" id="testPush" type="button">立即推送一次</button>
@@ -85,10 +86,11 @@ export async function render(root) {
   $(root, '#freq').onchange = $(root, '#pushOn').onchange = sync;
   sync();
 
+  const paused = tg.state !== 'authorized';  // 备份不依赖 Telegram，照常显示
   function paintSchedule(view) {
     $(root, '#jobs').innerHTML = view.jobs.map(j => `
       <li class="row"><div class="row-title">${esc(j.label)}</div>
-      <div class="row-meta">${j.next_run ? `下次 ${fmtDate(j.next_run)}` : '已关闭'}</div></li>`).join('');
+      <div class="row-meta">${!j.next_run ? '已关闭' : paused && j.id !== 'backup' ? '已暂停（Telegram 未就绪）' : `下次 ${fmtDate(j.next_run)}`}</div></li>`).join('');
     $(root, '#lastPush').textContent = `上次推送：${pushResult(view.last_push)}`;
   }
   paintSchedule(sched);

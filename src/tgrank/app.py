@@ -10,6 +10,7 @@ from importlib import resources
 from fastapi import FastAPI
 from fastapi.responses import PlainTextResponse
 from fastapi.staticfiles import StaticFiles
+from starlette.types import Scope
 from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 from .api import auth, boards, chats, imports, settings, tg
@@ -23,6 +24,15 @@ from .tg.manager import TgManager, TgState
 from .tg.sync import Syncer
 
 log = logging.getLogger(__name__)
+
+
+class FrontendFiles(StaticFiles):
+    """前端无构建、文件名不带 hash：每次都用 ETag 向服务器确认，升级后立即拿到新版本。"""
+
+    async def get_response(self, path: str, scope: Scope):
+        response = await super().get_response(path, scope)
+        response.headers["Cache-Control"] = "no-cache"
+        return response
 
 
 def init_db(env: Env) -> None:
@@ -81,5 +91,5 @@ def create_app(env: Env, *, client_factory: Callable | None = None,
         app.add_middleware(ProxyHeadersMiddleware, trusted_hosts=env.forwarded_allow_ips)
 
     static_dir = resources.files("tgrank").joinpath("static")
-    app.mount("/", StaticFiles(directory=str(static_dir), html=True), name="static")
+    app.mount("/", FrontendFiles(directory=str(static_dir), html=True), name="static")
     return app

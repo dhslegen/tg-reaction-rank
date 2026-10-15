@@ -39,4 +39,17 @@ export async function busy(btn, fn) {
   try { return await fn(); } finally { btn.disabled = false; }
 }
 
+// 与后端 records.display_emoji 同一规则：给默认文本呈现的字符补回 FE0F，❤ 才会显示成红心
+const TEXT_DEFAULT_HIGH = new Set([0x1F441, 0x1F54A, 0x1F321, 0x1F576, 0x1F5E8]);
+const isSkin = cp => cp >= 0x1F3FB && cp <= 0x1F3FF;
+export function displayEmoji(key) {
+  const cps = [...key];
+  return cps.map((ch, i) => {
+    const cp = ch.codePointAt(0);
+    const next = cps[i + 1];
+    if (cp === 0x200D || cp === 0xFE0F || isSkin(cp) || next === '\uFE0F' || (next && isSkin(next.codePointAt(0)))) return ch;
+    return cp < 0x1F000 || TEXT_DEFAULT_HIGH.has(cp) ? ch + '\uFE0F' : ch;
+  }).join('');
+}
+
 export const WEEKDAYS = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];

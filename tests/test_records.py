@@ -66,4 +66,17 @@ def test_desktop_reaction(raw, record):
 def test_reaction_label():
     assert reaction_label("paid", "") == "⭐"
     assert reaction_label("emoji", "😂") == "😂"
+    assert reaction_label("emoji", "❤") == "❤\ufe0f"
     assert reaction_label("custom_emoji", "99") == "自定义表情"
+
+
+@pytest.mark.parametrize("key,shown", [
+    ("❤", "❤\ufe0f"),                       # 默认文本呈现的单字符补回 FE0F
+    ("🕊", "🕊\ufe0f"),
+    ("❤\u200d🔥", "❤\ufe0f\u200d🔥"),        # ZWJ 序列只给 U+1F000 以下的基字符补
+    ("👨\u200d💻", "👨\u200d💻"),
+    ("👍🏻", "👍🏻"),
+])
+def test_display_emoji(key, shown):
+    from tgrank.records import display_emoji
+    assert display_emoji(key) == shown

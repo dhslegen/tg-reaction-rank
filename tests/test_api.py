@@ -13,7 +13,7 @@ def test_healthz_ok_without_telegram(client):
 
 @pytest.mark.parametrize("method,path", [
     ("get", "/api/chats"), ("get", "/api/boards"), ("get", "/api/settings"),
-    ("get", f"/api/chats/{BASIC}/ranking"), ("get", "/api/auth/me"),
+    ("get", f"/api/chats/{BASIC}/ranking"),
 ])
 def test_api_requires_login(client, method, path):
     assert getattr(client, method)(path).status_code == 401
@@ -23,7 +23,12 @@ def test_login_sets_strict_httponly_cookie(client):
     r = client.post("/api/auth/login", json={"password": PASSWORD})
     cookie = r.headers["set-cookie"].lower()
     assert "httponly" in cookie and "samesite=strict" in cookie and "secure" in cookie
-    assert client.get("/api/auth/me").json() == {"ok": True}
+    assert client.get("/api/auth/me").json() == {"authenticated": True}
+
+
+def test_me_reports_anonymous_without_error(client):
+    r = client.get("/api/auth/me")
+    assert r.status_code == 200 and r.json() == {"authenticated": False}
 
 
 def test_wrong_password_then_rate_limited(client):
@@ -35,7 +40,7 @@ def test_wrong_password_then_rate_limited(client):
 
 def test_logout_invalidates_session(admin):
     assert admin.post("/api/auth/logout", json={}).status_code == 200
-    assert admin.get("/api/auth/me").status_code == 401
+    assert admin.get("/api/auth/me").json() == {"authenticated": False}
 
 
 def test_unsafe_methods_require_json(admin):
@@ -176,3 +181,9 @@ def test_push_test_reports_failure_when_telegram_missing(seeded, env):
 def test_frontend_assets_served_without_login(client, path, ctype):
     r = client.get(path)
     assert r.status_code == 200 and ctype in r.headers["content-type"]
+
+
+def test_static_assets_revalidate_after_upgrade(client):
+    r = client.get("/js/main.js")
+    assert r.headers["cache-control"] == "no-cache"  # 升级镜像后浏览器不会继续用旧前端
+    assert "etag" in r.headers

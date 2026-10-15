@@ -6,7 +6,7 @@ from fastapi import APIRouter, HTTPException, Request, Response
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
-from ..auth import COOKIE_NAME, SESSION_TTL, create_session, delete_session, password_ok
+from ..auth import COOKIE_NAME, SESSION_TTL, create_session, delete_session, password_ok, session_valid
 from .deps import Admin, Ctx, Db
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
@@ -42,6 +42,7 @@ def logout(request: Request, response: Response, conn: Db):
     return {"ok": True}
 
 
-@router.get("/me", dependencies=[Admin])
-def me():
-    return {"ok": True}
+@router.get("/me")
+def me(request: Request, conn: Db):
+    """除登录外唯一不要求会话的接口：前端据此决定是否跳登录页，未登录时不报 401。"""
+    return {"authenticated": session_valid(conn, request.cookies.get(COOKIE_NAME), int(time.time()))}

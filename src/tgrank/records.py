@@ -122,11 +122,30 @@ def desktop_reaction(r: dict) -> ReactionRecord | None:
     return ReactionRecord("unknown", "", count)
 
 
+# U+1F000 以上默认就是彩色表情呈现，只有少数例外（🕊 是 Telegram 的可选反应之一）
+_TEXT_DEFAULT_HIGH = {0x1F441, 0x1F54A, 0x1F321, 0x1F576, 0x1F5E8}
+_NO_VS = {0x200D, 0xFE0F} | set(range(0x1F3FB, 0x1F400))  # ZWJ、变体符、肤色修饰符本身不补
+
+
+def display_emoji(key: str) -> str:
+    """归一化去掉的 FE0F 只用于分组匹配；展示时给默认文本呈现的字符补回，避免 ❤ 显示成黑色心形。"""
+    out = []
+    for i, ch in enumerate(key):
+        out.append(ch)
+        cp = ord(ch)
+        nxt = key[i + 1] if i + 1 < len(key) else ""
+        if cp in _NO_VS or nxt == VS16 or (nxt and 0x1F3FB <= ord(nxt) <= 0x1F3FF):
+            continue
+        if cp < 0x1F000 or cp in _TEXT_DEFAULT_HIGH:
+            out.append(VS16)
+    return "".join(out)
+
+
 def reaction_label(kind: str, key: str) -> str:
     if kind == "paid":
         return "⭐"
     if kind == "emoji" and key:
-        return key
+        return display_emoji(key)
     if kind == "custom_emoji":
         return "自定义表情"
     return "?"

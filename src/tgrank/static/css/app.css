@@ -38,7 +38,8 @@ a { color: var(--link); }
 .textbtn { font: inherit; color: var(--muted); background: none; border: 0; padding: 0; cursor: pointer; }
 .textbtn:hover { color: var(--ink); text-decoration: underline; }
 .banner { max-width: 60rem; margin: 1rem auto 0; padding: .75rem 1.5rem; }
-.banner > span { display: block; border-left: 3px solid var(--err); padding: .1rem 0 .1rem .9rem; }
+.banner > span, .banner-inline > span { display: block; border-left: 3px solid var(--err); padding: .1rem 0 .1rem .9rem; }
+.banner-inline { margin: 0 0 1rem; }
 
 /* ---------- 通用元素 ---------- */
 h1 { font-size: 2.4rem; line-height: 1.15; margin: 0; font-weight: 800; letter-spacing: -.02em; }
@@ -114,8 +115,8 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; fo
 .text .ph { color: var(--muted); }
 .foot { display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; }
 .reacts { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: .4rem 1rem; }
-.reacts li { font-size: .95rem; white-space: nowrap; }
-.reacts b { font: 500 1.1rem/1 var(--num); margin-left: .35em; }
+.reacts li { font-size: .95rem; white-space: nowrap; display: inline-flex; align-items: baseline; gap: .55em; }
+.reacts b { font: 500 1.1rem/1 var(--num); }
 .open { font-weight: 600; font-size: .9rem; text-decoration: none; white-space: nowrap; }
 .open:hover { text-decoration: underline; }
 .more { display: block; margin: 2rem auto 0; }
@@ -156,9 +157,9 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; fo
 .weights .w { display: grid; grid-template-columns: 6rem 7rem auto; gap: .5rem; align-items: center; justify-items: start; }
 .weights .w input { width: 100%; min-width: 0; }
 .chips { display: flex; flex-wrap: wrap; gap: .4rem; margin: .25rem 0 1.25rem; }
-.chip { font: inherit; background: var(--field); border: 1px solid var(--rule); border-radius: 999px; padding: .2rem .7rem; cursor: pointer; }
+.chip { font: inherit; background: var(--field); border: 1px solid var(--rule); border-radius: 999px; padding: .2rem .7rem; cursor: pointer; display: inline-flex; align-items: baseline; gap: .35em; }
 .chip:hover { border-color: var(--ink); }
-.chip b { font: 500 1rem/1 var(--num); margin-left: .3em; color: var(--muted); }
+.chip b { font: 500 1rem/1 var(--num); color: var(--muted); }
 .defaults { display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); gap: 0 1.5rem; max-width: 40rem; }
 .defaults input { width: 7rem; }
 

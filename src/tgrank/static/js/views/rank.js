@@ -171,6 +171,7 @@ export async function render(root) {
   $(root, '#q').oninput = debounce(() => { st.q = $(root, '#q').value.trim(); load(); }, 300);
   $(root, '#more').onclick = () => { st.offset = st.items.length; load(true); };
 
+  remember();  // 榜单页的表情候选依赖「当前群」，进入排行页就记下
   paintHeader();
   await loadTopics();
   await load();
