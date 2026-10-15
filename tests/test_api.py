@@ -167,3 +167,12 @@ def test_push_test_reports_failure_when_telegram_missing(seeded, env):
     body = r.json()
     assert body["sent"] == 0 and body["last_push"]["ok"] is False
     assert seeded.get("/api/schedule").json()["last_push"]["ok"] is False
+
+
+@pytest.mark.parametrize("path,ctype", [
+    ("/css/app.css", "text/css"), ("/js/main.js", "javascript"), ("/js/views/rank.js", "javascript"),
+    ("/fonts/BigShouldersDisplay-latin.woff2", "font/woff2"),
+])
+def test_frontend_assets_served_without_login(client, path, ctype):
+    r = client.get(path)
+    assert r.status_code == 200 and ctype in r.headers["content-type"]

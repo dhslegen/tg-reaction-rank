@@ -1,2 +1,27 @@
 <!doctype html>
-<html lang="zh-CN"><head><meta charset="utf-8"><title>tg-reaction-rank</title></head><body></body></html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>群消息反应排行</title>
+<link rel="icon" href="data:,">
+<link rel="preload" href="/fonts/BigShouldersDisplay-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/css/app.css">
+<script type="module" src="/js/main.js"></script>
+</head>
+<body>
+<header class="top" id="top" hidden>
+  <a class="brand" href="#/">反应排行</a>
+  <nav class="nav" aria-label="主导航">
+    <a href="#/" data-route="">排行</a>
+    <a href="#/boards" data-route="boards">榜单</a>
+    <a href="#/chats" data-route="chats">群</a>
+    <a href="#/telegram" data-route="telegram">Telegram</a>
+    <a href="#/settings" data-route="settings">设置</a>
+    <button type="button" class="textbtn" id="logout">退出</button>
+  </nav>
+</header>
+<p class="banner" id="banner" role="status" hidden></p>
+<main class="wrap" id="view"></main>
+</body>
+</html>

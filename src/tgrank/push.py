@@ -24,6 +24,8 @@ TOP_N = 10
 LIMIT = 4000          # Telegram 单条上限 4096（UTF-16 单元），留余量；这里按含 HTML 标签的长度算，更保守
 SUMMARY_CHARS = 80
 RESULT_KEY = "push_last"
+STATE_TEXT = {"unconfigured": "未配置 TG_API_ID / TG_API_HASH", "connecting": "正在连接", "logged_out": "未登录",
+              "relogin_required": "登录已失效", "offline": "暂时连不上 Telegram"}
 
 
 def utf16_len(s: str) -> int:
@@ -142,7 +144,7 @@ async def send_digest(mgr: TgManager, db_path: Path, tz: ZoneInfo, now: datetime
             await mgr.call(lambda c, p=part: c.send_message(entity, p, parse_mode="html", link_preview=False))
             sent += 1
     except TgUnavailable:
-        error = f"Telegram 当前不可用（状态：{mgr.state.value}），请在「Telegram」页检查登录"
+        error = f"Telegram {STATE_TEXT.get(mgr.state.value, mgr.state.value)}，请在「Telegram」页检查"
     except Exception as e:
         log.exception("精华推送失败")
         error = f"推送失败：{e}"
