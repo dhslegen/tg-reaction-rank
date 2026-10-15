@@ -156,3 +156,12 @@ async def test_login_refreshes_access_hash_and_pauses_unreachable(mgr, world, tg
 
 def test_state_is_connecting_before_start(tg_env, world):
     assert TgManager(tg_env, client_factory=world.factory).state is TgState.CONNECTING
+
+
+async def test_real_client_factory_builds_offline(tg_env):
+    from telethon import TelegramClient
+
+    from tgrank.tg.manager import real_client_factory
+    env = replace(tg_env, proxy={"proxy_type": "socks5", "addr": "127.0.0.1", "port": 1080, "rdns": True})
+    client = real_client_factory(env)("")
+    assert isinstance(client, TelegramClient) and client.flood_sleep_threshold == 60

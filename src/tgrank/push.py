@@ -4,6 +4,7 @@
 """
 from __future__ import annotations
 
+import asyncio
 import html
 import json
 import logging
@@ -123,9 +124,14 @@ async def send_digest(mgr: TgManager, db_path: Path, tz: ZoneInfo, now: datetime
     """生成并发送精华；结果（含失败原因）写入 meta，设置页可见，绝不静默失败。"""
     with connect(db_path) as conn:
         settings = load_settings(conn)
-        if not settings.push.enabled and not force:
-            return 0
-        parts = build_digest(conn, settings, tz, now)
+    if not settings.push.enabled and not force:
+        return 0
+
+    def build() -> list[str]:
+        with connect(db_path) as conn:
+            return build_digest(conn, settings, tz, now)
+    # 每群 × 每榜单各一次排行查询，大群可能要几秒；放到线程里，避免推送期间网页卡住
+    parts = await asyncio.to_thread(build)
     sent = 0
     try:
         if not parts:
